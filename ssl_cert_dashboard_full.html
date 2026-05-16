@@ -1,0 +1,399 @@
+
+<h2 class="sr-only">Complete Enterprise SSL Certificate Lifecycle Management Dashboard — full view showing KPI bar, partner table, certificate chain inspector, email preview, activity feed, and analytics chart</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.dash{font-family:var(--font-sans);width:100%}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.logo{width:26px;height:26px;background:#1B4FBB;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0}
+.tb-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.tb-sub{font-size:11px;color:var(--color-text-secondary)}
+.tb-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{font-size:11px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-primary{background:#1B4FBB;color:#fff;border-color:#1B4FBB}
+.btn-primary:hover{background:#1540A0}
+.btn-danger{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
+.kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:0.5px solid var(--color-border-tertiary)}
+.kpi{background:var(--color-background-primary);padding:12px 16px;border-right:0.5px solid var(--color-border-tertiary)}
+.kpi:last-child{border-right:none}
+.kpi-lbl{font-size:10px;color:var(--color-text-secondary);letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
+.kpi-val{font-size:24px;font-weight:500;color:var(--color-text-primary);line-height:1}
+.kpi-sub{font-size:10px;color:var(--color-text-secondary);margin-top:2px}
+.kpi.crit .kpi-val{color:#B91C1C}
+.kpi.high .kpi-val{color:#B45309}
+.kpi.ok .kpi-val{color:#047857}
+.body-grid{display:grid;grid-template-columns:1fr 300px}
+.left-col{border-right:0.5px solid var(--color-border-tertiary);min-width:0}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.panel-hd h3{font-size:12px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:5px}
+.srch{position:relative;display:flex;align-items:center}
+.srch i{position:absolute;left:7px;font-size:13px;color:var(--color-text-secondary)}
+.srch input{padding:3px 7px 3px 24px;font-size:11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);width:160px}
+.pills{display:flex;gap:4px}
+.pill{padding:2px 8px;border-radius:20px;font-size:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
+.pill.on{background:#1B4FBB;color:#fff;border-color:#1B4FBB}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{padding:7px 12px;text-align:left;font-size:10px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.3px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tbody tr{border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+tbody tr:hover{background:var(--color-background-secondary)}
+tbody tr.sel{background:#EFF6FF}
+td{padding:8px 12px;color:var(--color-text-primary);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bdg{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.bc{background:#FEE2E2;color:#991B1B}
+.bh{background:#FEF3C7;color:#92400E}
+.bm{background:#FEF9C3;color:#78350F}
+.bl{background:#D1FAE5;color:#065F46}
+.bg{background:#DCFCE7;color:#14532D}
+.bi{background:#DBEAFE;color:#1E40AF}
+.pname{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.purl{font-size:10px;color:var(--color-text-secondary)}
+.dc{font-weight:500;font-size:12px}
+.dc.c{color:#B91C1C}.dc.h{color:#B45309}.dc.o{color:#047857}
+.right-col{display:flex;flex-direction:column;min-width:0}
+.cert-empty{padding:32px 16px;text-align:center;color:var(--color-text-secondary)}
+.cert-empty i{font-size:28px;opacity:.35;display:block;margin-bottom:6px}
+.cert-empty p{font-size:12px}
+.cert-body{padding:14px}
+.cp-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.cp-url{font-size:11px;color:var(--color-text-secondary);margin-top:1px;margin-bottom:12px}
+.chain-lbl{font-size:10px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.cc{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:9px 11px;margin-bottom:7px;background:var(--color-background-secondary)}
+.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.cc-type{font-size:10px;font-weight:500;color:var(--color-text-secondary);display:flex;align-items:center;gap:3px}
+.cc-cn{font-size:11px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-row{display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.cc-v{color:var(--color-text-primary)}
+.ebar{height:3px;border-radius:2px;background:var(--color-border-tertiary);margin-top:6px}
+.efill{height:100%;border-radius:2px}
+.email-sec{border-top:0.5px solid var(--color-border-tertiary);padding:12px}
+.email-pre{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px;font-size:10px;color:var(--color-text-secondary);max-height:none;margin-top:8px}
+.email-subj{font-size:11px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;line-height:1.4}
+.email-body p{margin-bottom:5px;line-height:1.5;font-size:10px}
+.email-body .ct{width:100%;border-collapse:collapse;margin:6px 0;font-size:9px}
+.email-body .ct th{background:#1B4FBB;color:#fff;padding:3px 6px;text-align:left}
+.email-body .ct td{padding:3px 6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.act-bar{border-top:0.5px solid var(--color-border-tertiary)}
+.act-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.act-hd span{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.ldot{width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block;animation:pu 1.5s infinite}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.3}}
+.ai{display:flex;align-items:flex-start;gap:8px;padding:7px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.aico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+.ao{background:#DCFCE7;color:#14532D}
+.aw{background:#FEF3C7;color:#92400E}
+.ae{background:#FEE2E2;color:#991B1B}
+.ain{background:#DBEAFE;color:#1E40AF}
+.at{font-size:11px;color:var(--color-text-primary);line-height:1.4;flex:1}
+.atm{font-size:10px;color:var(--color-text-secondary);white-space:nowrap;flex-shrink:0;margin-left:6px}
+.chart-sec{border-top:0.5px solid var(--color-border-tertiary);padding:14px 16px}
+.chart-sec h4{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px}
+.chart-wrap{position:relative;height:130px;width:100%}
+.tier-g{color:#B45309}
+.tier-s{color:#64748B}
+.tier-b{color:#9A3412}
+</style>
+
+<div class="dash">
+
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
+      <div>
+        <div class="tb-title">SSL Certificate Lifecycle Management</div>
+        <div class="tb-sub">Enterprise Partner Dashboard · Last sync 2 min ago · 24 partners active</div>
+      </div>
+    </div>
+    <div class="tb-actions">
+      <div class="pills">
+        <div class="pill on" onclick="fsev(this,'all')">All</div>
+        <div class="pill" onclick="fsev(this,'CRITICAL')" style="color:#B91C1C;border-color:#FCA5A5">Critical</div>
+        <div class="pill" onclick="fsev(this,'HIGH')" style="color:#B45309;border-color:#FCD34D">High</div>
+        <div class="pill" onclick="fsev(this,'MEDIUM')">Medium</div>
+        <div class="pill" onclick="fsev(this,'HEALTHY')">Healthy</div>
+      </div>
+      <button class="btn" onclick="doSync()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync Sheet</button>
+      <button class="btn btn-primary" onclick="sendPrompt('Summarize all critical and high severity SSL certificates and create a prioritized remediation plan with draft emails')"><i class="ti ti-sparkles" aria-hidden="true"></i> AI Triage ↗</button>
+    </div>
+  </div>
+
+  <div class="kpi-bar">
+    <div class="kpi"><div class="kpi-lbl">Total partners</div><div class="kpi-val">24</div><div class="kpi-sub">6 Gold · 10 Silver · 8 Bronze</div></div>
+    <div class="kpi crit"><div class="kpi-lbl">Critical</div><div class="kpi-val">3</div><div class="kpi-sub">Expiring &lt; 7 days</div></div>
+    <div class="kpi high"><div class="kpi-lbl">High risk</div><div class="kpi-val">5</div><div class="kpi-sub">Expiring 8–30 days</div></div>
+    <div class="kpi ok"><div class="kpi-lbl">Healthy</div><div class="kpi-val">16</div><div class="kpi-sub">More than 60 days</div></div>
+    <div class="kpi"><div class="kpi-lbl">Emails sent</div><div class="kpi-val">7</div><div class="kpi-sub">This week · Next scan 3h 58m</div></div>
+  </div>
+
+  <div class="body-grid">
+    <div class="left-col">
+      <div class="panel-hd">
+        <h3><i class="ti ti-building-skyscraper" aria-hidden="true"></i> Partner inventory</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="srch"><i class="ti ti-search"></i><input id="srch" placeholder="Search…" oninput="ft()"></div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:26%">Partner</th>
+            <th style="width:9%">Tier</th>
+            <th style="width:20%">Leaf certificate</th>
+            <th style="width:10%">Chain</th>
+            <th style="width:8%">Days</th>
+            <th style="width:9%">Scanned</th>
+            <th style="width:18%">Status · action</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-sec">
+        <h4><i class="ti ti-chart-line" aria-hidden="true" style="margin-right:5px"></i>30-day certificate health trend across partner estate</h4>
+        <div class="chart-wrap">
+          <canvas id="trendChart" role="img" aria-label="Line chart showing critical, high, and healthy certificate counts over 30 days">Trend data: critical counts decreasing, healthy counts stable over 30 days.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="panel-hd"><h3><i class="ti ti-certificate" aria-hidden="true"></i> Certificate chain inspector</h3></div>
+      <div id="cert-area">
+        <div class="cert-empty">
+          <i class="ti ti-hand-finger" aria-hidden="true"></i>
+          <p>Select a partner row to inspect its full certificate chain</p>
+          <p style="font-size:10px;margin-top:4px;color:var(--color-text-secondary)">Leaf → Intermediate → Root</p>
+        </div>
+      </div>
+
+      <div id="email-sec" style="display:none" class="email-sec">
+        <button class="btn" id="etoggle" onclick="toggleEmail()" style="width:100%;justify-content:center">
+          <i class="ti ti-mail" aria-hidden="true"></i> Preview AI-drafted renewal email
+        </button>
+        <div id="eprev" style="display:none"></div>
+        <button id="esend" class="btn btn-primary" onclick="doSend()" style="width:100%;justify-content:center;margin-top:6px;display:none">
+          <i class="ti ti-send" aria-hidden="true"></i> Send renewal email
+        </button>
+      </div>
+
+      <div class="act-bar">
+        <div class="act-hd">
+          <span><i class="ti ti-activity" aria-hidden="true" style="margin-right:4px"></i>Live scan activity</span>
+          <span class="ldot" title="Live feed"></span>
+        </div>
+        <div id="alist"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const P=[
+  {id:'ACM-001',name:'Acme Corp',url:'api.acme.com',tier:'Gold',owner:'cto@acme.com',leaf:{cn:'api.acme.com',iss:"Let's Encrypt R3",to:'2026-05-17',days:6,algo:'EC-256'},int:{cn:"Let's Encrypt R3",iss:'ISRG Root X1',to:'2027-09-15',days:493},root:{cn:'ISRG Root X1',iss:'DST Root CA X3',to:'2030-06-04',days:1119},sev:'CRITICAL',chain:true,sc:'08:02'},
+  {id:'INI-003',name:'Initech Ltd',url:'portal.initech.com',tier:'Silver',owner:'admin@initech.com',leaf:{cn:'portal.initech.com',iss:"Let's Encrypt R3",to:'2026-05-15',days:4,algo:'EC-256'},int:{cn:"Let's Encrypt R3",iss:'ISRG Root X1',to:'2027-09-15',days:493},root:{cn:'ISRG Root X1',iss:'DST Root CA X3',to:'2030-06-04',days:1119},sev:'CRITICAL',chain:true,sc:'08:04'},
+  {id:'MOM-006',name:'MomCorp',url:'api.momcorp.io',tier:'Bronze',owner:'support@momcorp.io',leaf:{cn:'api.momcorp.io',iss:'ZeroSSL',to:'2026-05-13',days:2,algo:'EC-256'},int:{cn:'ZeroSSL RSA',iss:'COMODO',to:'2030-11-01',days:1635},root:{cn:'COMODO RSA',iss:'COMODO',to:'2038-01-18',days:4268},sev:'CRITICAL',chain:false,sc:'08:01'},
+  {id:'GLB-002',name:'Globex Systems',url:'api.globex.io',tier:'Gold',owner:'infra@globex.io',leaf:{cn:'api.globex.io',iss:'DigiCert TLS',to:'2026-05-22',days:11,algo:'RSA-2048'},int:{cn:'DigiCert SHA2',iss:'DigiCert Root',to:'2028-04-13',days:702},root:{cn:'DigiCert Global Root',iss:'DigiCert',to:'2031-11-10',days:2009},sev:'HIGH',chain:true,sc:'08:03'},
+  {id:'UMB-004',name:'Umbrella Corp',url:'data.umbrella.net',tier:'Gold',owner:'certs@umbrella.net',leaf:{cn:'data.umbrella.net',iss:'Sectigo RSA',to:'2026-06-03',days:23,algo:'RSA-4096'},int:{cn:'Sectigo RSA OV',iss:'USERTrust RSA',to:'2029-05-30',days:1114},root:{cn:'USERTrust RSA',iss:'COMODO',to:'2038-01-18',days:4268},sev:'HIGH',chain:true,sc:'08:05'},
+  {id:'VYN-007',name:'Vehement Capital',url:'secure.vehement.com',tier:'Gold',owner:'it@vehement.com',leaf:{cn:'secure.vehement.com',iss:'GlobalSign',to:'2026-06-17',days:37,algo:'RSA-2048'},int:{cn:'GlobalSign AlphaSSL',iss:'GlobalSign Root',to:'2027-12-15',days:948},root:{cn:'GlobalSign Root CA',iss:'GlobalSign',to:'2028-01-28',days:992},sev:'HIGH',chain:true,sc:'08:07'},
+  {id:'CYD-009',name:'Cyberdyne Systems',url:'iam.cyberdyne.ai',tier:'Gold',owner:'sre@cyberdyne.ai',leaf:{cn:'iam.cyberdyne.ai',iss:'DigiCert TLS',to:'2026-06-08',days:28,algo:'RSA-2048'},int:{cn:'DigiCert SHA2',iss:'DigiCert Root',to:'2028-04-13',days:702},root:{cn:'DigiCert Global Root',iss:'DigiCert',to:'2031-11-10',days:2009},sev:'HIGH',chain:true,sc:'08:09'},
+  {id:'SOR-005',name:'Soylent Corp',url:'connect.soylent.co',tier:'Silver',owner:'devops@soylent.co',leaf:{cn:'connect.soylent.co',iss:"Let's Encrypt R3",to:'2026-07-14',days:64,algo:'EC-256'},int:{cn:"Let's Encrypt R3",iss:'ISRG Root X1',to:'2027-09-15',days:493},root:{cn:'ISRG Root X1',iss:'DST Root CA X3',to:'2030-06-04',days:1119},sev:'MEDIUM',chain:true,sc:'08:06'},
+  {id:'PLC-008',name:'Placebo Labs',url:'api.placebolabs.dev',tier:'Silver',owner:'ops@placebolabs.dev',leaf:{cn:'api.placebolabs.dev',iss:"Let's Encrypt R3",to:'2026-08-13',days:94,algo:'EC-256'},int:{cn:"Let's Encrypt R3",iss:'ISRG Root X1',to:'2027-09-15',days:493},root:{cn:'ISRG Root X1',iss:'DST Root CA X3',to:'2030-06-04',days:1119},sev:'HEALTHY',chain:true,sc:'08:08'},
+  {id:'WYN-010',name:'Wernham Hogg',url:'portal.wernhamhogg.co.uk',tier:'Bronze',owner:'tech@wernhamhogg.co.uk',leaf:{cn:'portal.wernhamhogg.co.uk',iss:'Sectigo',to:'2026-09-20',days:132,algo:'RSA-2048'},int:{cn:'Sectigo RSA OV',iss:'USERTrust RSA',to:'2029-05-30',days:1114},root:{cn:'USERTrust RSA',iss:'COMODO',to:'2038-01-18',days:4268},sev:'HEALTHY',chain:true,sc:'08:10'},
+  {id:'NXC-011',name:'Nexcorp Ltd',url:'api.nexcorp.com',tier:'Silver',owner:'admin@nexcorp.com',leaf:{cn:'api.nexcorp.com',iss:'DigiCert TLS',to:'2026-10-05',days:147,algo:'RSA-2048'},int:{cn:'DigiCert SHA2',iss:'DigiCert Root',to:'2028-04-13',days:702},root:{cn:'DigiCert Global Root',iss:'DigiCert',to:'2031-11-10',days:2009},sev:'HEALTHY',chain:true,sc:'08:11'},
+  {id:'ZNT-012',name:'Zantac Media',url:'cdn.zantacmedia.net',tier:'Bronze',owner:'dev@zantacmedia.net',leaf:{cn:'cdn.zantacmedia.net',iss:"Let's Encrypt R3",to:'2026-11-22',days:195,algo:'EC-256'},int:{cn:"Let's Encrypt R3",iss:'ISRG Root X1',to:'2027-09-15',days:493},root:{cn:'ISRG Root X1',iss:'DST Root CA X3',to:'2030-06-04',days:1119},sev:'HEALTHY',chain:true,sc:'08:12'},
+];
+
+const ACTS=[
+  {t:'e',ic:'ti-alert-circle',msg:'MomCorp: intermediate chain break detected',time:'08:01'},
+  {t:'e',ic:'ti-clock-x',msg:'Acme Corp: leaf expires in 6 days — CRITICAL raised',time:'08:02'},
+  {t:'e',ic:'ti-clock-x',msg:'Initech Ltd: leaf expires in 4 days — CRITICAL raised',time:'08:04'},
+  {t:'w',ic:'ti-clock',msg:'Globex Systems: 11 days remaining — HIGH alert',time:'08:03'},
+  {t:'i',ic:'ti-mail-forward',msg:'Umbrella Corp: renewal email sent to certs@umbrella.net',time:'07:45'},
+  {t:'o',ic:'ti-circle-check',msg:'Placebo Labs: 94 days remaining — healthy',time:'08:08'},
+  {t:'i',ic:'ti-refresh',msg:'Google Sheets sync: 24 partners loaded',time:'08:00'},
+];
+
+let cur='all', selId=null;
+
+function sc(s){return s==='CRITICAL'?'bc':s==='HIGH'?'bh':s==='MEDIUM'?'bm':s==='LOW'?'bl':'bg'}
+function dc(d){return d<=7?'c':d<=30?'h':'o'}
+function ecol(d){return d<=7?'#EF4444':d<=30?'#F59E0B':d<=60?'#EAB308':'#22C55E'}
+function epct(d){return Math.min(100,Math.round(d/365*100))}
+function tierLabel(t){return t==='Gold'?'<span class="tier-g"><i class="ti ti-trophy" aria-hidden="true"></i> Gold</span>':t==='Silver'?'<span class="tier-s"><i class="ti ti-medal" aria-hidden="true"></i> Silver</span>':'<span class="tier-b"><i class="ti ti-award" aria-hidden="true"></i> Bronze</span>'}
+
+function renderTable(){
+  const q=document.getElementById('srch').value.toLowerCase();
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  P.filter(p=>cur==='all'||p.sev===cur)
+   .filter(p=>!q||p.name.toLowerCase().includes(q)||p.url.includes(q))
+   .forEach(p=>{
+    const tr=document.createElement('tr');
+    if(p.id===selId)tr.className='sel';
+    tr.onclick=()=>sel(p.id);
+    tr.innerHTML=`
+      <td><div class="pname">${p.name}</div><div class="purl">https://${p.url}</div></td>
+      <td>${tierLabel(p.tier)}</td>
+      <td style="font-size:10px">${p.leaf.cn}<br><span style="color:var(--color-text-secondary)">${p.leaf.iss}</span></td>
+      <td>${p.chain?'<span class="bdg bg"><i class="ti ti-shield-check" aria-hidden="true"></i>Valid</span>':'<span class="bdg bc"><i class="ti ti-shield-x" aria-hidden="true"></i>Broken</span>'}</td>
+      <td><span class="dc ${dc(p.leaf.days)}">${p.leaf.days}d</span></td>
+      <td style="font-size:10px;color:var(--color-text-secondary)">${p.sc}</td>
+      <td>
+        <span class="bdg ${sc(p.sev)}">${p.sev}</span>
+        ${p.sev==='CRITICAL'||p.sev==='HIGH'?` <button class="btn btn-danger" style="padding:1px 6px;font-size:10px;margin-top:2px" onclick="event.stopPropagation();qemail('${p.id}')"><i class="ti ti-mail" aria-hidden="true"></i> Email</button>`:''}
+      </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function certCard(c,lbl,depth){
+  const icons=['ti-file-certificate','ti-building-bank','ti-lock'];
+  return `<div class="cc">
+    <div class="cc-hd">
+      <span class="cc-type"><i class="ti ${icons[depth]}" aria-hidden="true"></i> ${lbl}</span>
+      <span class="bdg ${c.days<=7?'bc':c.days<=30?'bh':c.days<=60?'bm':'bg'}">${c.days}d</span>
+    </div>
+    <div class="cc-cn">${c.cn}</div>
+    <div class="cc-row"><span>Issuer</span><span class="cc-v">${c.iss}</span></div>
+    <div class="cc-row"><span>Expires</span><span class="cc-v">${c.to}</span></div>
+    <div class="ebar"><div class="efill" style="width:${epct(c.days)}%;background:${ecol(c.days)}"></div></div>
+  </div>`;
+}
+
+function sel(id){
+  selId=id;
+  renderTable();
+  const p=P.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('cert-area').innerHTML=`
+    <div class="cert-body">
+      <div class="cp-name">${p.name} <span class="bdg ${sc(p.sev)}">${p.sev}</span></div>
+      <div class="cp-url">https://${p.url} · ${p.leaf.algo} · Chain: ${p.chain?'valid':'broken'}</div>
+      <div class="chain-lbl">Certificate chain</div>
+      ${certCard(p.leaf,'Leaf (end-entity)',0)}
+      ${certCard(p.int,'Intermediate CA',1)}
+      ${certCard(p.root,'Root CA',2)}
+    </div>`;
+  const es=document.getElementById('email-sec');
+  if(p.sev==='CRITICAL'||p.sev==='HIGH'){
+    es.style.display='block';
+    document.getElementById('eprev').style.display='none';
+    document.getElementById('esend').style.display='none';
+    document.getElementById('etoggle').innerHTML='<i class="ti ti-mail" aria-hidden="true"></i> Preview AI-drafted renewal email';
+    window._ep=p;
+  } else {
+    es.style.display='none';
+  }
+}
+
+function toggleEmail(){
+  const ep=document.getElementById('eprev');
+  const sb=document.getElementById('esend');
+  const p=window._ep;
+  if(!p)return;
+  if(ep.style.display==='none'){
+    const subj=p.sev==='CRITICAL'?`Urgent: SSL certificate expiring in ${p.leaf.days} days — action required`:`SSL certificate renewal reminder — ${p.leaf.days} days remaining`;
+    ep.innerHTML=`
+      <div class="email-subj">Subject: ${subj}</div>
+      <div class="email-body">
+        <p>Dear ${p.name} security team,</p>
+        <p>Our monitoring system has detected that the SSL/TLS certificate for <strong>${p.url}</strong> expires in <strong>${p.leaf.days} day${p.leaf.days===1?'':'s'}</strong> on ${p.leaf.to}.</p>
+        <table class="ct">
+          <tr><th>Type</th><th>Subject</th><th>Issuer</th><th>Expires</th><th>Days</th></tr>
+          <tr><td>Leaf</td><td>${p.leaf.cn}</td><td>${p.leaf.iss}</td><td>${p.leaf.to}</td><td style="color:#B91C1C;font-weight:500">${p.leaf.days}d</td></tr>
+          <tr><td>Intermediate</td><td>${p.int.cn}</td><td>${p.int.iss}</td><td>${p.int.to}</td><td style="color:#047857">${p.int.days}d</td></tr>
+          <tr><td>Root</td><td>${p.root.cn}</td><td>${p.root.iss}</td><td>${p.root.to}</td><td style="color:#047857">${p.root.days}d</td></tr>
+        </table>
+        <p>Please renew and deploy the certificate at your earliest convenience and share the renewed certificate with our integration team.</p>
+        <p>Best regards,<br>Enterprise Partner Security Team</p>
+      </div>`;
+    ep.className='email-pre';
+    ep.style.display='block';
+    sb.style.display='flex';
+    document.getElementById('etoggle').innerHTML='<i class="ti ti-eye-off" aria-hidden="true"></i> Hide preview';
+  } else {
+    ep.style.display='none';
+    sb.style.display='none';
+    document.getElementById('etoggle').innerHTML='<i class="ti ti-mail" aria-hidden="true"></i> Preview AI-drafted renewal email';
+  }
+}
+
+function doSend(){
+  const p=window._ep;
+  if(!p)return;
+  addActivity({t:'i',ic:'ti-mail-forward',msg:`${p.name}: renewal email sent to ${p.owner}`,time:'now'});
+  const sb=document.getElementById('esend');
+  sb.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Email sent';
+  sb.disabled=true;
+  sb.className='btn bg';
+}
+
+function qemail(id){
+  sel(id);
+  setTimeout(toggleEmail,200);
+}
+
+function fsev(el,sev){
+  document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  cur=sev;
+  renderTable();
+}
+function ft(){renderTable();}
+
+function doSync(){
+  addActivity({t:'i',ic:'ti-refresh',msg:'Manual Google Sheets sync triggered by analyst',time:'now'});
+}
+
+function addActivity(a){
+  const al=document.getElementById('alist');
+  const div=document.createElement('div');
+  div.className='ai';
+  const cls=a.t==='e'?'ae':a.t==='w'?'aw':a.t==='o'?'ao':'ain';
+  div.innerHTML=`<div class="aico ${cls}"><i class="ti ${a.ic}" aria-hidden="true"></i></div><div class="at">${a.msg}</div><div class="atm">${a.time}</div>`;
+  al.insertBefore(div,al.firstChild);
+  while(al.children.length>8)al.removeChild(al.lastChild);
+}
+
+function renderActivity(){
+  ACTS.forEach(a=>addActivity(a));
+}
+
+function buildChart(){
+  const labels=['Apr 11','Apr 14','Apr 17','Apr 20','Apr 23','Apr 26','Apr 29','May 2','May 5','May 8','May 11'];
+  new Chart(document.getElementById('trendChart'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Critical',data:[1,2,1,3,2,4,3,5,4,3,3],borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,0.08)',tension:.35,pointRadius:2,borderWidth:1.5,fill:true},
+        {label:'High',data:[3,4,5,4,6,5,7,6,5,5,5],borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,0.06)',tension:.35,pointRadius:2,borderWidth:1.5,fill:true},
+        {label:'Healthy',data:[18,17,16,15,15,13,14,14,15,16,16],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,0.06)',tension:.35,pointRadius:2,borderWidth:1.5,fill:true},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:9},color:'#888',maxRotation:0},grid:{display:false}},
+        y:{ticks:{font:{size:9},color:'#888'},grid:{color:'rgba(128,128,128,0.1)'}}
+      }
+    }
+  });
+}
+
+renderTable();
+renderActivity();
+buildChart();
+
+setInterval(()=>{
+  const pool=[
+    {t:'o',ic:'ti-circle-check',msg:'Wernham Hogg: probe complete — 132 days, chain valid',time:'live'},
+    {t:'w',ic:'ti-clock',msg:'Cyberdyne Systems: 28 days — HIGH maintained',time:'live'},
+    {t:'o',ic:'ti-shield-check',msg:'Placebo Labs: probe complete — 94 days healthy',time:'live'},
+    {t:'i',ic:'ti-bolt',msg:'BullMQ worker picked up 3 scan jobs',time:'live'},
+  ];
+  addActivity(pool[Math.floor(Math.random()*pool.length)]);
+},8000);
+</script>
