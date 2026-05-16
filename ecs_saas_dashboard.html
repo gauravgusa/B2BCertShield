@@ -1,0 +1,799 @@
+
+<h2 class="sr-only">Enterprise Certificate Switch SaaS Dashboard — real-time partner compliance monitoring with charts, defaulter reports, scheduler, and notifications</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.ecs-root { padding: 0; width: 100%; }
+
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+}
+.top-bar .brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #1e3a5f; display: flex; align-items: center; justify-content: center;
+}
+.brand-icon i { color: #fff; font-size: 18px; }
+.brand-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.brand-sub { font-size: 11px; color: var(--color-text-secondary); }
+.top-bar .actions { display: flex; gap: 8px; }
+
+.critical-banner {
+  background: #fef2f2; border-bottom: 0.5px solid #fca5a5;
+  padding: 8px 20px; display: flex; align-items: center; gap: 10px;
+}
+.critical-banner i { color: #dc2626; font-size: 18px; }
+.critical-banner .msg { font-size: 13px; font-weight: 500; color: #991b1b; flex: 1; }
+.critical-banner .timer { font-size: 13px; font-weight: 500; color: #dc2626; font-variant-numeric: tabular-nums; }
+
+.nav-tabs {
+  display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-primary); padding: 0 20px;
+  overflow-x: auto;
+}
+.nav-tab {
+  padding: 10px 16px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  color: var(--color-text-secondary); border-bottom: 2px solid transparent;
+  margin-bottom: -0.5px; display: flex; align-items: center; gap: 6px;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.nav-tab.active { color: #1e3a5f; border-bottom-color: #1e3a5f; font-weight: 500; }
+.nav-tab:hover:not(.active) { color: var(--color-text-primary); }
+.badge-count {
+  background: #dc2626; color: #fff; border-radius: 10px;
+  font-size: 11px; padding: 1px 6px; font-weight: 500;
+}
+
+.content { padding: 20px; }
+
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.metric-card {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md); padding: 14px 16px;
+}
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 24px; font-weight: 500; }
+.metric-value.green { color: #059669; }
+.metric-value.red { color: #dc2626; }
+.metric-value.amber { color: #d97706; }
+.metric-value.blue { color: #1e3a5f; }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+
+.charts-row {
+  display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 20px;
+}
+.chart-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 16px;
+}
+.chart-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.chart-sub { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 14px; }
+
+.partner-table-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 20px;
+}
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.table-header .title { font-size: 13px; font-weight: 500; }
+.table-filter { display: flex; gap: 8px; }
+.filter-btn {
+  font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary); background: none;
+  cursor: pointer; color: var(--color-text-secondary);
+}
+.filter-btn.active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+th {
+  text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 500;
+  color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+td { padding: 9px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--color-background-secondary); }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+}
+.status-switched { background: #d1fae5; color: #065f46; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-failed { background: #fee2e2; color: #991b1b; }
+.status-mismatch { background: #ede9fe; color: #5b21b6; }
+
+.impact-pill {
+  display: inline-flex; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500;
+}
+.impact-low { background: #d1fae5; color: #065f46; }
+.impact-medium { background: #fef3c7; color: #92400e; }
+.impact-high { background: #fee2e2; color: #991b1b; }
+.impact-critical { background: #fce7f3; color: #9d174d; }
+
+.action-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary); background: none;
+  cursor: pointer; color: var(--color-text-secondary);
+}
+.action-btn:hover { background: var(--color-background-secondary); }
+.action-btn.primary { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+
+.scheduler-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.sched-card, .snap-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 16px;
+}
+.sched-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.sched-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.sched-label { font-size: 12px; color: var(--color-text-secondary); width: 140px; flex-shrink: 0; }
+.sched-val { font-size: 13px; font-weight: 500; }
+.interval-slider { flex: 1; }
+.interval-display { font-size: 13px; font-weight: 500; color: #1e3a5f; min-width: 50px; }
+
+.snaps-list { display: flex; flex-direction: column; gap: 8px; }
+.snap-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);
+}
+.snap-label { font-size: 12px; font-weight: 500; flex: 1; }
+.snap-time { font-size: 11px; color: var(--color-text-secondary); }
+.snap-compliance {
+  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 8px;
+}
+
+.acct-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.acct-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 16px;
+}
+.acct-header { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.acct-amount { font-size: 22px; font-weight: 500; }
+.acct-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
+
+.mcp-log {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 20px;
+}
+.mcp-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.mcp-event { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.mcp-event:last-child { border-bottom: none; }
+.mcp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.mcp-dot.green { background: #059669; }
+.mcp-dot.blue { background: #2563eb; }
+.mcp-dot.amber { background: #d97706; }
+.mcp-dot.red { background: #dc2626; }
+.mcp-dot.purple { background: #7c3aed; }
+.mcp-hook { font-size: 12px; font-weight: 500; font-family: var(--font-mono); }
+.mcp-desc { font-size: 12px; color: var(--color-text-secondary); }
+.mcp-ts { font-size: 11px; color: var(--color-text-tertiary); margin-left: auto; white-space: nowrap; }
+
+.panel-hidden { display: none; }
+
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+.progress-bar-wrap { width: 100%; height: 8px; background: var(--color-background-secondary); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.progress-bar-fill { height: 100%; background: #059669; border-radius: 4px; transition: width 0.6s ease; }
+
+.switch-state-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 500;
+  background: #fef2f2; color: #991b1b;
+}
+.switch-state-badge.live { background: #d1fae5; color: #065f46; }
+.switch-state-badge.complete { background: #dbeafe; color: #1e40af; }
+
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+
+<div class="ecs-root">
+
+<div class="top-bar">
+  <div class="brand">
+    <div class="brand-icon"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
+    <div>
+      <div class="brand-name">ECS Platform</div>
+      <div class="brand-sub">Enterprise Certificate Switch — v2.0</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span class="switch-state-badge live"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#059669;display:inline-block;"></span>Critical Window Active</span>
+    <span style="font-size:12px; color:var(--color-text-secondary);">Switch: sw-2025-05-11-001</span>
+  </div>
+  <div class="actions">
+    <button class="action-btn" onclick="triggerRetest()"><i class="ti ti-refresh" aria-hidden="true"></i> Re-test</button>
+    <button class="action-btn primary" onclick="sendAllAlerts()"><i class="ti ti-mail" aria-hidden="true"></i> Alert Defaulters</button>
+  </div>
+</div>
+
+<div class="critical-banner">
+  <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+  <span class="msg">⚠ Go-Live Window Active — 3 partners have NOT switched. Transaction derailment risk is HIGH. Early accounting impact: $142,000+</span>
+  <span class="timer" id="countdown-timer">T+02:47 elapsed</span>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('overview', this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Overview</button>
+  <button class="nav-tab" onclick="switchTab('partners', this)"><i class="ti ti-users" aria-hidden="true"></i> Partners <span class="badge-count">3</span></button>
+  <button class="nav-tab" onclick="switchTab('scheduler', this)"><i class="ti ti-clock" aria-hidden="true"></i> Scheduler</button>
+  <button class="nav-tab" onclick="switchTab('accounting', this)"><i class="ti ti-currency-dollar" aria-hidden="true"></i> Accounting</button>
+  <button class="nav-tab" onclick="switchTab('mcp', this)"><i class="ti ti-cpu" aria-hidden="true"></i> MCP Hooks</button>
+  <button class="nav-tab" onclick="switchTab('snapshots', this)"><i class="ti ti-camera" aria-hidden="true"></i> Snapshots</button>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW TAB -->
+  <div id="tab-overview">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label"><i class="ti ti-users" style="font-size:12px;" aria-hidden="true"></i> Total Partners</div>
+        <div class="metric-value blue" id="m-total">24</div>
+        <div class="metric-sub">Registered in registry</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label"><i class="ti ti-circle-check" style="font-size:12px;" aria-hidden="true"></i> Switched</div>
+        <div class="metric-value green" id="m-switched">21</div>
+        <div class="metric-sub">Certificate verified ✓</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label"><i class="ti ti-alert-circle" style="font-size:12px;" aria-hidden="true"></i> Defaulters</div>
+        <div class="metric-value red" id="m-defaulters">3</div>
+        <div class="metric-sub">Not switched yet</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label"><i class="ti ti-percentage" style="font-size:12px;" aria-hidden="true"></i> Compliance</div>
+        <div class="metric-value amber" id="m-compliance">87.5%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:87.5%"></div></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label"><i class="ti ti-clock" style="font-size:12px;" aria-hidden="true"></i> Window</div>
+        <div class="metric-value red" id="m-window">T+2:47</div>
+        <div class="metric-sub">of 5 min critical window</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Compliance Status</div>
+        <div class="chart-sub">Partner distribution at T+2:47</div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#059669"></span>Switched (21)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Defaulters (3)</span>
+        </div>
+        <div style="position:relative; width:100%; height:220px;">
+          <canvas id="pieChart" role="img" aria-label="Pie chart: 21 partners switched (87.5%), 3 defaulters (12.5%)">21 partners switched, 3 defaulters.</canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Switch Timeline — per minute</div>
+        <div class="chart-sub">Cumulative partner compliance over go-live window</div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#1e3a5f"></span>Switched</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Defaulters</span>
+        </div>
+        <div style="position:relative; width:100%; height:220px;">
+          <canvas id="barChart" role="img" aria-label="Bar chart showing partner switch progress each minute during the go-live window">T+0: 8 switched; T+1: 15; T+2: 21 switched, 3 still defaulting.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:20px;">
+      <div class="chart-title">Partner Impact Breakdown</div>
+      <div class="chart-sub">Estimated daily transaction volume per partner — defaulters highlighted</div>
+      <div style="position:relative; width:100%; height:280px;">
+        <canvas id="partnerBar" role="img" aria-label="Horizontal bar chart showing transaction volume per partner, with defaulters shown in red">Partner breakdown by transaction volume, defaulters in red.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTNERS TAB -->
+  <div id="tab-partners" class="panel-hidden">
+    <div class="partner-table-card">
+      <div class="table-header">
+        <span class="title"><i class="ti ti-users" style="font-size:14px;" aria-hidden="true"></i> Partner Certificate Status</span>
+        <div class="table-filter">
+          <button class="filter-btn active" onclick="filterTable('all', this)">All (24)</button>
+          <button class="filter-btn" onclick="filterTable('switched', this)">Switched (21)</button>
+          <button class="filter-btn" onclick="filterTable('defaulter', this)">Defaulters (3)</button>
+        </div>
+      </div>
+      <table id="partner-table">
+        <thead>
+          <tr>
+            <th style="width:22%">Partner</th>
+            <th style="width:13%">Status</th>
+            <th style="width:16%">Fingerprint</th>
+            <th style="width:11%">Switched At</th>
+            <th style="width:10%">Impact</th>
+            <th style="width:10%">TXN/day</th>
+            <th style="width:18%">Action</th>
+          </tr>
+        </thead>
+        <tbody id="partner-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SCHEDULER TAB -->
+  <div id="tab-scheduler" class="panel-hidden">
+    <div class="scheduler-row">
+      <div class="sched-card">
+        <div class="sched-title"><i class="ti ti-clock" aria-hidden="true"></i> Re-test Scheduler</div>
+        <div class="sched-row">
+          <span class="sched-label">Interval</span>
+          <input type="range" min="5" max="10" value="5" step="1" class="interval-slider" id="interval-slider" oninput="updateInterval(this.value)">
+          <span class="interval-display" id="interval-val">5 min</span>
+        </div>
+        <div class="sched-row">
+          <span class="sched-label">Max retries</span>
+          <input type="range" min="1" max="20" value="12" step="1" style="flex:1;" id="retries-slider" oninput="document.getElementById('retries-val').textContent=this.value">
+          <span class="interval-display" id="retries-val">12</span>
+        </div>
+        <div class="sched-row">
+          <span class="sched-label">Stop on 100%</span>
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+            <input type="checkbox" checked id="stop-check"> Yes
+          </label>
+        </div>
+        <div class="sched-row">
+          <span class="sched-label">Notify each cycle</span>
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+            <input type="checkbox" id="notify-check"> Yes
+          </label>
+        </div>
+        <div style="margin-top:16px; display:flex; gap:8px;">
+          <button class="action-btn primary" onclick="triggerRetest()" style="flex:1;"><i class="ti ti-player-play" aria-hidden="true"></i> Run Now</button>
+          <button class="action-btn" onclick="saveScheduler()" style="flex:1;"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save Config</button>
+        </div>
+      </div>
+      <div class="sched-card">
+        <div class="sched-title"><i class="ti ti-history" aria-hidden="true"></i> Run History</div>
+        <table style="font-size:12px;">
+          <thead><tr><th>Run</th><th>Time</th><th>Compliance</th><th>Defaulters</th><th>Result</th></tr></thead>
+          <tbody id="run-history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Compliance Trend — Scheduled Re-tests</div>
+      <div class="chart-sub">How compliance evolves across re-test cycles</div>
+      <div style="position:relative; width:100%; height:220px;">
+        <canvas id="trendChart" role="img" aria-label="Line chart showing compliance percentage across re-test runs, trending upward">Compliance trend across re-test runs.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTING TAB -->
+  <div id="tab-accounting" class="panel-hidden">
+    <div class="acct-row">
+      <div class="acct-card">
+        <div class="acct-header"><i class="ti ti-alert-triangle" style="color:#dc2626;font-size:14px;" aria-hidden="true"></i> Financial Exposure</div>
+        <div class="acct-amount" style="color:#dc2626;">$142K – $285K</div>
+        <div class="acct-sub">Estimated range at T+2:47</div>
+      </div>
+      <div class="acct-card">
+        <div class="acct-header"><i class="ti ti-receipt" style="font-size:14px;" aria-hidden="true"></i> TXN at Risk</div>
+        <div class="acct-amount" style="color:#d97706;">4,720</div>
+        <div class="acct-sub">Transactions blocked/failed</div>
+      </div>
+      <div class="acct-card">
+        <div class="acct-header"><i class="ti ti-users" style="font-size:14px;" aria-hidden="true"></i> Partners Impacting</div>
+        <div class="acct-amount" style="color:#1e3a5f;">3</div>
+        <div class="acct-sub">Active defaulters</div>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div class="chart-title">Financial Impact Over Time</div>
+      <div class="chart-sub">Cumulative exposure $ grows with each minute of defaulting</div>
+      <div style="position:relative; width:100%; height:220px;">
+        <canvas id="impactChart" role="img" aria-label="Area line chart showing growing financial exposure over time during the switch window">Financial impact growing over time, currently at $142K.</canvas>
+      </div>
+    </div>
+    <div class="partner-table-card">
+      <div class="table-header"><span class="title">Per-Partner Impact</span></div>
+      <table>
+        <thead><tr><th>Partner</th><th>TXN/min</th><th>Minutes Defaulting</th><th>Est. Impact</th><th>Severity</th></tr></thead>
+        <tbody id="impact-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MCP TAB -->
+  <div id="tab-mcp" class="panel-hidden">
+    <div class="mcp-log">
+      <div class="mcp-title"><i class="ti ti-cpu" aria-hidden="true"></i> MCP Event Stream <span style="font-size:11px; color:var(--color-text-secondary); font-weight:400; margin-left:8px;">Live — Anthropic MCP Protocol</span></div>
+      <div id="mcp-events"></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">MCP Hook Distribution</div>
+        <div class="chart-sub">Events fired by hook type</div>
+        <div style="position:relative; width:100%; height:200px;">
+          <canvas id="mcpPie" role="img" aria-label="Pie chart of MCP hook types fired">MCP hook type breakdown.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Hook Latency (ms)</div>
+        <div class="chart-sub">Average processing time per hook type</div>
+        <div style="position:relative; width:100%; height:200px;">
+          <canvas id="mcpLatency" role="img" aria-label="Bar chart showing MCP hook latency in milliseconds">Hook latency per type.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SNAPSHOTS TAB -->
+  <div id="tab-snapshots" class="panel-hidden">
+    <div class="snap-card">
+      <div class="sched-title"><i class="ti ti-camera" aria-hidden="true"></i> Dashboard Snapshots — Go-Live Window</div>
+      <div class="snaps-list" id="snaps-list"></div>
+      <div style="margin-top:16px;">
+        <button class="action-btn primary" onclick="captureSnapshot()"><i class="ti ti-camera" aria-hidden="true"></i> Capture Snapshot Now</button>
+        <button class="action-btn" style="margin-left:8px;" onclick="emailOwner()"><i class="ti ti-mail" aria-hidden="true"></i> Email Bundle to Owner</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const partners = [
+  { id:'p01', name:'Acme Financial', status:'switched', fp:'SHA256:3a7f...c12e', time:'14:00:23', impact:'low', txn:12400 },
+  { id:'p02', name:'GlobalPay Corp', status:'switched', fp:'SHA256:9b2d...f88a', time:'14:00:41', impact:'medium', txn:28700 },
+  { id:'p03', name:'NovaBanking Ltd', status:'failed', fp:'SHA256:OLD-cert!', time:'—', impact:'critical', txn:54200 },
+  { id:'p04', name:'SwiftSettle Inc', status:'switched', fp:'SHA256:cc4a...1109', time:'14:01:03', impact:'low', txn:8900 },
+  { id:'p05', name:'Meridian Trust', status:'pending', fp:'—', time:'—', impact:'high', txn:31500 },
+  { id:'p06', name:'Atlas Commerce', status:'switched', fp:'SHA256:7e3b...dd02', time:'14:00:58', impact:'low', txn:5600 },
+  { id:'p07', name:'Pinnacle API', status:'switched', fp:'SHA256:f1a9...8800', time:'14:01:17', impact:'medium', txn:19800 },
+  { id:'p08', name:'OmniLedger SA', status:'failed', fp:'SHA256:MISMATCH', time:'—', impact:'high', txn:22300 },
+  { id:'p09', name:'BrightPay EU', status:'switched', fp:'SHA256:2d88...5531', time:'14:01:44', impact:'low', txn:7100 },
+  { id:'p10', name:'CoreTrans Ltd', status:'switched', fp:'SHA256:b6c3...aa77', time:'14:00:31', impact:'low', txn:4200 },
+  { id:'p11', name:'Veritas Bank', status:'switched', fp:'SHA256:4e1f...6692', time:'14:01:09', impact:'medium', txn:16600 },
+  { id:'p12', name:'Quantum Finance', status:'switched', fp:'SHA256:d0b7...9981', time:'14:00:55', impact:'low', txn:6300 },
+  { id:'p13', name:'Stellar Payments', status:'switched', fp:'SHA256:a3c2...0047', time:'14:01:33', impact:'medium', txn:21700 },
+  { id:'p14', name:'Apex Clearing', status:'switched', fp:'SHA256:5f9e...bb34', time:'14:00:48', impact:'low', txn:9900 },
+  { id:'p15', name:'TrueVault AG', status:'pending', fp:'—', time:'—', impact:'medium', txn:14500 },
+  { id:'p16', name:'ClearPath Inc', status:'switched', fp:'SHA256:e8d4...3321', time:'14:01:52', impact:'low', txn:3800 },
+  { id:'p17', name:'EastWest FX', status:'switched', fp:'SHA256:7c55...f101', time:'14:01:21', impact:'low', txn:6100 },
+  { id:'p18', name:'IronBridge Pay', status:'switched', fp:'SHA256:92a1...445c', time:'14:00:37', impact:'medium', txn:18200 },
+  { id:'p19', name:'ZenFinance', status:'switched', fp:'SHA256:b3e0...78de', time:'14:01:08', impact:'low', txn:4700 },
+  { id:'p20', name:'ProxyBank GmbH', status:'switched', fp:'SHA256:f2c7...9908', time:'14:01:15', impact:'medium', txn:12800 },
+  { id:'p21', name:'Cascade API', status:'switched', fp:'SHA256:4488...cc12', time:'14:00:52', impact:'low', txn:5300 },
+  { id:'p22', name:'Nexus Gateway', status:'switched', fp:'SHA256:19bd...7743', time:'14:01:30', impact:'low', txn:8400 },
+  { id:'p23', name:'Polaris Pay', status:'switched', fp:'SHA256:a7f3...0012', time:'14:01:48', impact:'low', txn:3200 },
+  { id:'p24', name:'Summit Clearing', status:'switched', fp:'SHA256:d91e...5566', time:'14:00:44', impact:'low', txn:7600 },
+];
+
+const runHistory = [
+  { run:'#1', time:'14:05:00', compliance:'87.5%', defaulters:3, result:'RUNNING' },
+  { run:'#2', time:'14:10:00', compliance:'—', defaulters:'—', result:'SCHEDULED' },
+  { run:'#3', time:'14:15:00', compliance:'—', defaulters:'—', result:'SCHEDULED' },
+];
+
+const mcpEvents = [
+  { color:'green', hook:'cert_switch_initiated', desc:'Delta messages dispatched to 24 partners. Pre-flight validation passed.', ts:'14:00:00' },
+  { color:'blue', hook:'partner_verified', desc:'Acme Financial — fingerprint matched. OCSP: GOOD.', ts:'14:00:23' },
+  { color:'blue', hook:'partner_verified', desc:'GlobalPay Corp — fingerprint matched. OCSP: GOOD.', ts:'14:00:41' },
+  { color:'red', hook:'defaulter_detected', desc:'NovaBanking Ltd — fingerprint MISMATCH. Accounting impact: CRITICAL.', ts:'14:01:00' },
+  { color:'amber', hook:'accounting_impact_updated', desc:'Exposure estimate updated: $142K–$285K. 4,720 TXN at risk.', ts:'14:02:17' },
+  { color:'purple', hook:'snapshot_captured', desc:'T+1min snapshot saved. Compliance: 62.5%. PNG+PDF stored.', ts:'14:01:00' },
+  { color:'purple', hook:'snapshot_captured', desc:'T+2min snapshot saved. Compliance: 87.5%. PNG+PDF stored.', ts:'14:02:00' },
+  { color:'red', hook:'notification_sent', desc:'Defaulter alerts dispatched: NovaBanking, OmniLedger, TrueVault. URGENT.', ts:'14:02:05' },
+  { color:'amber', hook:'retest_scheduled', desc:'Re-test #1 queued for T+5:00. Interval: 5min. Max retries: 12.', ts:'14:02:30' },
+];
+
+const snapshots = [
+  { label:'T+0 (Go-Live)', time:'14:00:00', compliance:33, status:'low' },
+  { label:'T+1 min', time:'14:01:00', compliance:62.5, status:'medium' },
+  { label:'T+2 min', time:'14:02:00', compliance:87.5, status:'high' },
+  { label:'T+3 min (auto)', time:'14:03:00 (scheduled)', compliance:null, status:'pending' },
+];
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('panel-hidden'));
+  document.getElementById('tab-' + tab).classList.remove('panel-hidden');
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function filterTable(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPartners(f);
+}
+
+function renderPartners(filter = 'all') {
+  const tbody = document.getElementById('partner-tbody');
+  const rows = partners.filter(p => filter === 'all' || (filter === 'switched' && p.status === 'switched') || (filter === 'defaulter' && p.status !== 'switched'));
+  tbody.innerHTML = rows.map(p => {
+    const stClass = p.status === 'switched' ? 'status-switched' : p.status === 'pending' ? 'status-pending' : 'status-failed';
+    const stLabel = p.status === 'switched' ? '✓ Switched' : p.status === 'pending' ? '⏳ Pending' : '✗ Failed';
+    const impClass = 'impact-' + p.impact;
+    const actions = p.status !== 'switched' 
+      ? `<button class="action-btn" onclick="verifyPartner('${p.id}')">Verify</button> <button class="action-btn" style="color:#dc2626;" onclick="alertPartner('${p.name}')">Alert</button>`
+      : `<span style="font-size:11px; color:#059669;">Compliant</span>`;
+    return `<tr>
+      <td><strong style="font-size:12px;">${p.name}</strong><br><span style="font-size:11px; color:var(--color-text-secondary);">${p.id}</span></td>
+      <td><span class="status-pill ${stClass}">${stLabel}</span></td>
+      <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-text-secondary);">${p.fp}</td>
+      <td style="font-size:12px;">${p.time}</td>
+      <td><span class="impact-pill ${impClass}">${p.impact.toUpperCase()}</span></td>
+      <td style="font-size:12px;">${p.txn.toLocaleString()}</td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRunHistory() {
+  document.getElementById('run-history-tbody').innerHTML = runHistory.map(r =>
+    `<tr><td>${r.run}</td><td>${r.time}</td><td>${r.compliance}</td><td>${r.defaulters}</td>
+     <td><span class="status-pill ${r.result==='RUNNING'?'status-pending':r.result==='SCHEDULED'?'status-pending':'status-switched'}">${r.result}</span></td></tr>`
+  ).join('');
+}
+
+function renderMcpEvents() {
+  document.getElementById('mcp-events').innerHTML = mcpEvents.map(e =>
+    `<div class="mcp-event">
+      <div class="mcp-dot ${e.color}"></div>
+      <div>
+        <div class="mcp-hook">${e.hook}</div>
+        <div class="mcp-desc">${e.desc}</div>
+      </div>
+      <div class="mcp-ts">${e.ts}</div>
+    </div>`
+  ).join('');
+}
+
+function renderSnapshots() {
+  document.getElementById('snaps-list').innerHTML = snapshots.map(s => {
+    const compLabel = s.compliance ? `${s.compliance}% compliant` : 'Scheduled';
+    const color = s.compliance >= 80 ? '#059669' : s.compliance >= 50 ? '#d97706' : s.compliance ? '#dc2626' : '#6b7280';
+    return `<div class="snap-item">
+      <i class="ti ti-camera" style="color:${color}; font-size:16px;" aria-hidden="true"></i>
+      <div style="flex:1;">
+        <div class="snap-label">${s.label}</div>
+        <div style="font-size:11px; color:var(--color-text-secondary);">${s.time}</div>
+      </div>
+      <span class="snap-compliance" style="background:${color}22; color:${color};">${compLabel}</span>
+      ${s.compliance ? `<button class="action-btn" style="font-size:11px;"><i class="ti ti-download" aria-hidden="true"></i> PNG</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderImpactTable() {
+  const defaulters = partners.filter(p => p.status !== 'switched');
+  document.getElementById('impact-tbody').innerHTML = defaulters.map(p => {
+    const tpm = (p.txn / 1440).toFixed(1);
+    const mins = 2.8;
+    const impact = (tpm * mins * 30).toFixed(0);
+    const impClass = 'impact-' + p.impact;
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${tpm}</td>
+      <td>~2.8 min</td>
+      <td style="color:#dc2626; font-weight:500;">$${Number(impact).toLocaleString()}</td>
+      <td><span class="impact-pill ${impClass}">${p.impact.toUpperCase()}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateInterval(v) {
+  document.getElementById('interval-val').textContent = v + ' min';
+}
+
+function triggerRetest() {
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> Running...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+    alert('Re-test run #2 triggered. 3 defaulters re-verified. Results in 15s.');
+  }, 1800);
+}
+
+function sendAllAlerts() {
+  alert('Urgent emails dispatched to 3 defaulters:\n• NovaBanking Ltd\n• OmniLedger SA\n• TrueVault AG\n\nOwner snapshot bundle queued.');
+}
+
+function verifyPartner(id) {
+  alert('Force re-verification queued for partner ' + id + '. Results in ~30s.');
+}
+
+function alertPartner(name) {
+  alert('URGENT alert sent to ' + name + ' — switch instructions + escalation contact attached.');
+}
+
+function saveScheduler() {
+  const interval = document.getElementById('interval-slider').value;
+  const retries = document.getElementById('retries-slider').value;
+  alert('Scheduler config saved:\n• Interval: ' + interval + ' min\n• Max retries: ' + retries + '\n\nNext run: T+' + interval + ':00');
+}
+
+function captureSnapshot() {
+  const now = new Date().toLocaleTimeString();
+  snapshots.push({ label:'Manual — ' + now, time: now, compliance: 87.5, status: 'high' });
+  renderSnapshots();
+  alert('Snapshot captured at ' + now + '. PNG + PDF saved to cloud storage.');
+}
+
+function emailOwner() {
+  alert('Snapshot bundle email queued for enterprise owner:\n• 3 snapshots attached (T+0, T+1, T+2)\n• Defaulter list: 3 partners\n• Impact estimate: $142K–$285K\n\nSending via SendGrid hook...');
+}
+
+let elapsed = 167;
+function updateTimer() {
+  elapsed++;
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  const str = 'T+0' + m + ':' + String(s).padStart(2,'0') + ' elapsed';
+  const el = document.getElementById('countdown-timer');
+  if (el) el.textContent = str;
+  const wEl = document.getElementById('m-window');
+  if (wEl) wEl.textContent = 'T+' + m + ':' + String(s).padStart(2,'0');
+}
+setInterval(updateTimer, 1000);
+
+window.addEventListener('load', () => {
+  renderPartners();
+  renderRunHistory();
+  renderMcpEvents();
+  renderSnapshots();
+  renderImpactTable();
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Switched', 'Defaulters'],
+      datasets: [{
+        data: [21, 3],
+        backgroundColor: ['#059669', '#dc2626'],
+        borderWidth: 2,
+        borderColor: isDark ? '#1a1a1a' : '#fff',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: ['T+0:00', 'T+0:30', 'T+1:00', 'T+1:30', 'T+2:00', 'T+2:47'],
+      datasets: [
+        { label: 'Switched', data: [8, 12, 15, 18, 21, 21], backgroundColor: '#059669' },
+        { label: 'Defaulters', data: [16, 12, 9, 6, 3, 3], backgroundColor: '#dc2626' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, ticks: { autoSkip: false } },
+        y: { stacked: true, max: 24 }
+      }
+    }
+  });
+
+  const topPartners = [...partners].sort((a,b) => b.txn - a.txn).slice(0, 12);
+  new Chart(document.getElementById('partnerBar'), {
+    type: 'bar',
+    data: {
+      labels: topPartners.map(p => p.name),
+      datasets: [{
+        label: 'Daily TXN',
+        data: topPartners.map(p => p.txn),
+        backgroundColor: topPartners.map(p => p.status !== 'switched' ? '#dc2626' : '#1e3a5f'),
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { ticks: { callback: v => (v/1000).toFixed(0) + 'K' } } }
+    }
+  });
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: ['T+0', 'T+5min', 'T+10min', 'T+15min (proj)', 'T+20min (proj)'],
+      datasets: [{
+        label: 'Compliance %',
+        data: [33, 87.5, null, null, null],
+        borderColor: '#059669', backgroundColor: '#05966922',
+        fill: true, tension: 0.3,
+        pointStyle: 'circle',
+      }, {
+        label: 'Projected',
+        data: [null, 87.5, 95, 100, 100],
+        borderColor: '#6b7280', borderDash: [6, 4],
+        fill: false, tension: 0.3,
+        pointStyle: 'circle',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } }
+    }
+  });
+
+  new Chart(document.getElementById('impactChart'), {
+    type: 'line',
+    data: {
+      labels: ['T+0', 'T+1', 'T+2', 'T+3', 'T+4', 'T+5'],
+      datasets: [{
+        label: 'Est. Impact $K',
+        data: [0, 48, 142, 210, 255, 285],
+        borderColor: '#dc2626', backgroundColor: '#dc262622',
+        fill: true, tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { ticks: { callback: v => '$' + v + 'K' } } }
+    }
+  });
+
+  new Chart(document.getElementById('mcpPie'), {
+    type: 'doughnut',
+    data: {
+      labels: ['partner_verified', 'snapshot_captured', 'defaulter_detected', 'notification_sent', 'other'],
+      datasets: [{
+        data: [21, 3, 3, 2, 2],
+        backgroundColor: ['#059669', '#7c3aed', '#dc2626', '#d97706', '#6b7280'],
+        borderWidth: 2,
+        borderColor: isDark ? '#1a1a1a' : '#fff',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  new Chart(document.getElementById('mcpLatency'), {
+    type: 'bar',
+    data: {
+      labels: ['cert_switch_initiated', 'partner_verified', 'defaulter_detected', 'snapshot_captured', 'notification_sent'],
+      datasets: [{
+        label: 'Avg ms',
+        data: [245, 38, 92, 1840, 320],
+        backgroundColor: ['#1e3a5f', '#059669', '#dc2626', '#7c3aed', '#d97706']
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxRotation: 30, font: { size: 10 } } },
+        y: { ticks: { callback: v => v + 'ms' } }
+      }
+    }
+  });
+});
+</script>
